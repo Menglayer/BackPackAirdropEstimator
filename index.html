@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Backpack Airdrop Estimator</title>
+  <link rel="icon" type="image/jpeg" href="favicon.jpg">
+  <link rel="alternate icon" type="image/jpeg" href="favicon.jpg">
+  <meta name="theme-color" content="#F72435">
+  <style>
+:root{
+  --bg1:#0b0b0b; --bg2:#141414;
+  --brand:#F72435; --brand-dark:#8A131B;
+  --text:#f8fafc; --muted:#a1a1aa;
+  --border:#262626; --card: rgba(255,255,255,0.06);
+  --shadow: 0 10px 40px rgba(247,36,53,.18);
+}
+*{box-sizing:border-box} html,body{height:100%}
+body{
+  margin:0; font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--text);
+  background:linear-gradient(to bottom, var(--bg1), var(--bg2));
+}
+.container{max-width:1200px; margin:0 auto; padding:16px 24px}
+h1{margin:12px 0 0; font-size:40px; line-height:1.2}
+.row{display:grid; grid-template-columns:1fr; gap:20px}
+@media(min-width:1024px){.row{grid-template-columns:repeat(2, 1fr)}}
+.card{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:20px; box-shadow:var(--shadow); backdrop-filter: blur(6px)}
+.label{display:block; font-size:12px; color:var(--muted)}
+.input{
+  margin-top:6px; width:100%; border:1px solid var(--border); border-radius:12px; padding:10px 12px;
+  font-variant-numeric:tabular-nums; font-size:14px; background:#0f0f10; color:var(--text)
+}
+.input::placeholder{color:#6b7280}
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:8px 12px;
+  border-radius:10px; background:var(--brand); color:#fff; border:0; cursor:pointer; font-size:13px; min-height:34px; line-height:1; text-decoration:none
+}
+.btn:hover{filter:brightness(1.05)}
+.grid2{display:grid; grid-template-columns:1fr; gap:20px}
+@media(min-width:1024px){.grid2{grid-template-columns:repeat(2, 1fr)}}
+.kpi-title{font-size:13px; color:var(--muted)}
+.kpi-value{margin-top:8px; font-size:28px; font-weight:700; font-variant-numeric:tabular-nums}
+.notice{font-size:12px; color:var(--muted)}
+.header{display:flex; justify-content:space-between; align-items:flex-start; gap:20px}
+.hero{
+  position:relative; overflow:visible;
+  background:
+    radial-gradient(60% 50% at 90% 0%, rgba(247,36,53,.18), transparent 70%),
+    radial-gradient(50% 40% at 10% 20%, rgba(249,58,67,.12), transparent 70%);
+}
+.hero .inner{position:relative; z-index:1}
+.footer{margin:24px auto; text-align:center; font-size:12px; color:var(--muted)}
+.footer a{color:var(--brand); text-decoration:none}
+.header-right{display:flex; gap:8px}
+
+/* 通用 CTA 样式 */
+a.cta-card{
+  position: relative;
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  padding:18px 22px; border-radius:16px; text-decoration:none; color:#fff;
+  background: linear-gradient(90deg, rgba(247,36,53,.42), rgba(247,36,53,.14));
+  border:1px solid rgba(247,36,53,.45);
+  box-shadow: 0 8px 30px rgba(247,36,53,.28), 0 0 0 6px rgba(247,36,53,.08);
+  min-height:72px; overflow:hidden;
+}
+a.cta-card::before{
+  content:""; position:absolute; inset:-2px; border-radius:inherit;
+  background: conic-gradient(from 0deg, rgba(247,36,53,.8), rgba(255,255,255,.65), rgba(247,36,53,.8));
+  filter: blur(18px); opacity:.22; z-index:0;
+  animation: spin 6s linear infinite;
+}
+a.cta-card::after{
+  content:""; position:absolute; inset:0; border-radius:inherit; z-index:0;
+  background:
+    radial-gradient(60% 150% at 0% 0%, rgba(255,255,255,.14), transparent 55%),
+    radial-gradient(60% 150% at 100% 100%, rgba(247,36,53,.30), transparent 60%);
+}
+a.cta-card > *{ position:relative; z-index:1; }
+
+.cta-text{
+  font-size:20px; font-weight:800; letter-spacing:.3px;
+  text-shadow: 0 2px 12px rgba(247,36,53,.35);
+}
+.cta-arrow{
+  font-size:28px; opacity:.95;
+  animation: arrow 1.8s ease-in-out infinite;
+}
+
+a.cta-card:hover{
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 16px 60px rgba(247,36,53,.42), 0 0 0 8px rgba(247,36,53,.10);
+  outline: 1px solid rgba(247,36,53,.35);
+}
+
+/* 桌面端更“豪华” */
+@media (min-width:1024px){
+  .sticky-cta .container{ padding-top:16px; padding-bottom:16px; }
+  a.cta-card{ padding:22px 26px; min-height:84px; border-radius:18px; }
+  .cta-text{ font-size:26px; }
+  .cta-arrow{ font-size:34px; }
+}
+
+/* 动效 */
+@keyframes spin { from{ transform: rotate(0deg);} to{ transform: rotate(360deg);} }
+@keyframes arrow { 0%,100%{ transform: translateX(0);} 50%{ transform: translateX(6px);} }
+
+/* 悬停高亮（保留你的通用高亮规范） */
+.feature:hover, .card:hover{
+  outline:1px solid rgba(247,36,53,.35);
+  box-shadow:0 10px 36px rgba(247,36,53,.18);
+}
+
+/* —— 新增：吸顶横幅 —— */
+/* —— 吸顶横幅 —— */
+.sticky-cta{
+  position: sticky; top: 0; z-index: 1000;
+  background: linear-gradient(180deg, rgba(11,11,11,.92), rgba(11,11,11,.66));
+  -webkit-backdrop-filter: blur(10px) saturate(130%);
+  backdrop-filter: blur(10px) saturate(130%);
+  border-bottom: none;
+  box-shadow: 0 10px 30px rgba(0,0,0,.35);
+  transform: translateZ(0);
+  will-change: transform;
+}
+.sticky-cta::after{
+  content:""; position:absolute; left:0; right:0; bottom:-1px; height:14px;
+  background: linear-gradient(180deg, rgba(0,0,0,.22), rgba(0,0,0,0));
+  pointer-events:none;
+}
+.sticky-cta .container{ padding-top:14px; padding-bottom:14px; max-width:1400px; }
+
+
+/* 悬停高亮（你之前的需求保留） */
+.feature:hover, .card:hover{ outline:1px solid rgba(247,36,53,.35); box-shadow:0 10px 36px rgba(247,36,53,.12); }
+  </style>
+</head>
+<body>
+
+  <!-- 吸顶横幅（中英双语随按钮切换） -->
+  <div class="sticky-cta">
+    <div class="container" style="padding-top:10px; padding-bottom:10px">
+      <a class="cta-card" href="https://backpack.exchange/signup?code=mengya" target="_blank" rel="noopener" aria-label="Backpack Sign-up">
+        <div class="cta-text" id="ctaText" data-i18n="ctaText">⚡ 快速注册 BackPack 加入世纪大空投</div>
+        <div class="cta-arrow">→</div>
+      </a>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="container inner">
+      <div class="header">
+        <div>
+          <h1 id="titleH1" data-i18n-html="title">预估你的 <span style="color:var(--brand)">Backpack</span> 空投价值</h1>
+        </div>
+        <div class="header-right">
+          <button id="langToggle" class="btn" title="中/EN">中 / EN</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- 上半区：我的参数 + 假设 -->
+    <div class="row" style="margin-top:20px">
+      <div class="card">
+        <div class="kpi-title" style="font-weight:600; color:var(--text)" data-i18n="myParams">我的参数</div>
+        <div style="margin-top:16px; display:flex; flex-direction:column; gap:14px">
+          <label class="label"><span data-i18n="curPts">当前积分</span>
+            <input id="myPoints" class="input" inputmode="decimal" placeholder="例如 123456">
+          </label>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="kpi-title" style="font-weight:600; color:var(--text)" data-i18n="netAssump">全网与假设</div>
+        <div style="margin-top:16px; display:flex; flex-direction:column; gap:14px">
+          <label class="label"><span data-i18n="totalPts">全网积分总量</span>
+            <input id="totalPoints" class="input" inputmode="decimal" placeholder="例如 1000000000">
+          </label>
+          <label class="label"><span data-i18n="fdv">TGE 时 FDV</span>
+            <input id="fdv" class="input" inputmode="decimal" value="5,000,000,000">
+          </label>
+          <label class="label"><span data-i18n="airdropPct">TGE 时空投比例（%）</span>
+            <input id="airdropPct" class="input" inputmode="decimal" value="10">
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- 下半区：结果卡片 -->
+    <div class="grid2" style="margin-top:20px">
+      <div class="card">
+        <div class="kpi-title" data-i18n="onePoint">1 分 的预测价值</div>
+        <div id="onePointValue" class="kpi-value">—</div>
+        <div class="notice" data-i18n="onePointNote">按「FDV × 空投比例 ÷ 全网积分总量」计算</div>
+      </div>
+
+      <div class="card">
+        <div class="kpi-title" data-i18n="airdropCard">空投价值 / 我的占比</div>
+        <div id="myAirdropValue" class="kpi-value">？</div>
+        <div id="mySharePct" class="notice">—</div>
+        <div id="gateArea" class="notice" style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; align-items:center">
+          <a id="followBtn" class="btn" href="https://twitter.com/intent/follow?screen_name=menglayer" target="_blank" rel="noopener" data-i18n="follow">关注我</a>
+          <div class="notice" data-i18n="gateHint">（关注 @menglayer 后返回本页自动解锁）</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div>made by　<a href="https://x.com/menglayer" target="_blank">X：@menglayer</a>　<a href="https://t.me/menglayer" target="_blank">Tg：@menglayer</a></div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  function $(sel){ return document.querySelector(sel); }
+  function $all(sel){ return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+  function fmt(n, d){ if(n==null || !isFinite(n)) return '—'; return new Intl.NumberFormat('en-US',{maximumFractionDigits:(d==null?2:d)}).format(n); }
+  function parseNum(v, def){ var n = parseFloat(String(v||'').replace(/,/g,'')); return isFinite(n)?n:(def==null?0:def); }
+  function setText(node, val){ if(node){ node.textContent = val; } }
+
+  var el = {
+    langToggle: $('#langToggle'),
+    myPoints: $('#myPoints'),
+    totalPoints: $('#totalPoints'),
+    fdv: $('#fdv'),
+    airdropPct: $('#airdropPct'),
+    onePointValue: $('#onePointValue'),
+    myAirdropValue: $('#myAirdropValue'),
+    mySharePct: $('#mySharePct'),
+    followBtn: $('#followBtn'),
+    gateArea: $('#gateArea'),
+    ctaText: $('#ctaText')
+  };
+
+  // i18n（新增 ctaText）
+  var lang = 'zh';
+  var i18n = {
+    zh: {
+      title: '预估你的 <span style="color:var(--brand)">Backpack</span> 空投价值',
+      myParams: '我的参数',
+      curPts: '当前积分',
+      netAssump: '全网与假设',
+      totalPts: '全网积分总量',
+      fdv: 'TGE 时 FDV',
+      airdropPct: 'TGE 时空投比例（%）',
+      onePoint: '1 分 的预测价值',
+      onePointNote: '按「FDV × 空投比例 ÷ 全网积分总量」计算',
+      airdropCard: '空投价值 / 我的占比',
+      follow: '关注我',
+      gateHint: '（关注 @menglayer 后返回本页自动解锁）',
+      phMyPts: '例如 123456',
+      phTotal: '例如 1000000000',
+      ctaText: '⚡ 快速注册 BackPack 加入世纪大空投!!!'
+    },
+    en: {
+      title: 'Estimate your <span style="color:var(--brand)">Backpack</span> airdrop value',
+      myParams: 'My Inputs',
+      curPts: 'My Points',
+      netAssump: 'Network & Assumptions',
+      totalPts: 'Total Network Points',
+      fdv: 'FDV at TGE',
+      airdropPct: 'Airdrop % at TGE',
+      onePoint: 'Value per 1 point',
+      onePointNote: 'Calculated as (FDV × Airdrop % ÷ Total Points)',
+      airdropCard: 'Airdrop Value / My Share',
+      follow: 'Follow me on X',
+      gateHint: '(Follow @menglayer, then return to auto-unlock)',
+      phMyPts: 'e.g. 123456',
+      phTotal: 'e.g. 1000000000',
+      ctaText: '⚡ Quick sign-up for Backpack — Join the massive airdrop!!!'
+    }
+  };
+
+  function applyI18n(){
+    var dict = i18n[lang];
+    $all('[data-i18n]').forEach(function(n){ var k=n.getAttribute('data-i18n'); if(dict[k]!=null) n.textContent=dict[k]; });
+    $all('[data-i18n-html]').forEach(function(n){ var k=n.getAttribute('data-i18n-html'); if(dict[k]!=null) n.innerHTML=dict[k]; });
+    if (el.langToggle) el.langToggle.textContent = (lang==='zh')?'中 / EN':'EN / 中';
+    if (el.myPoints) el.myPoints.setAttribute('placeholder', dict.phMyPts);
+    if (el.totalPoints) el.totalPoints.setAttribute('placeholder', dict.phTotal);
+    if (el.ctaText) el.ctaText.textContent = dict.ctaText;
+  }
+
+  // unlock gate
+  window._resultUnlocked = (localStorage.getItem('backpack_unlock') === '1');
+  function unlockNow(){
+    window._resultUnlocked = true;
+    try{ localStorage.setItem('backpack_unlock','1'); }catch(e){}
+    compute();
+  }
+
+  // core compute
+  function compute(){
+    var myPts = Math.max(0, parseNum(el.myPoints.value, 0));
+    var total = Math.max(0, parseNum(el.totalPoints.value, 0));
+    var fdv = Math.max(0, parseNum(el.fdv.value, 5000000000));
+    var ap = Math.max(0, parseNum(el.airdropPct.value, 10))/100;
+
+    var pool = fdv * ap;
+    var onePoint = (total>0)? (pool/total) : null;
+    setText(el.onePointValue, (onePoint!=null)?('≈ $'+fmt(onePoint,6)):'—');
+
+    var myShare = (total>0)? (myPts/total) : null;
+    var myVal = (myShare!=null)? (pool*myShare) : null;
+
+    el.myAirdropValue.setAttribute('data-value', (myVal!=null)?('≈ $'+fmt(myVal,2)):'—');
+    el.mySharePct.setAttribute('data-value', (myShare!=null)?((myShare*100).toFixed(6)+'%'):'—');
+
+    if(window._resultUnlocked){
+      setText(el.myAirdropValue, el.myAirdropValue.getAttribute('data-value'));
+      setText(el.mySharePct, el.mySharePct.getAttribute('data-value'));
+      if (el.gateArea) el.gateArea.style.display = 'none';
+    } else {
+      setText(el.myAirdropValue, '？');
+      setText(el.mySharePct, i18n[lang].gateHint);
+      if (el.gateArea) el.gateArea.style.display = 'flex';
+    }
+
+    applyI18n();
+  }
+
+  // events
+  document.addEventListener('input', compute);
+  if ($('#followBtn')){
+    var followClickedAt = 0;
+    $('#followBtn').addEventListener('click', function(){ followClickedAt = Date.now(); });
+    document.addEventListener('visibilitychange', function(){
+      if (document.visibilityState === 'visible' && !window._resultUnlocked) {
+        if (followClickedAt && (Date.now() - followClickedAt) < 60000) unlockNow();
+      }
+    });
+    window.addEventListener('focus', function(){
+      if (!window._resultUnlocked && followClickedAt && (Date.now() - followClickedAt) < 60000) unlockNow();
+    });
+  }
+  if (el.langToggle) el.langToggle.addEventListener('click', function(){ lang=(lang==='zh')?'en':'zh'; applyI18n(); });
+
+  // init
+  applyI18n(); compute();
+})();
+</script>
+</body>
+</html>
